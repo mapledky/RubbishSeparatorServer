@@ -6,6 +6,7 @@
 package net.rosal.separator.main.mobile;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
@@ -87,6 +88,14 @@ public class MainMobile extends HttpServlet {
                 //根据经纬度获取信息
                 getCanInfoByLocation(request, response);
                 break;
+            case "002":
+                //根据Id登录应用，判断是否已经失效
+                loginWithId(request, response);
+                break;
+            case "003":
+                //修改用户名
+                changeUserName(request, response);
+                break;
             default:
                 break;
         }
@@ -102,6 +111,29 @@ public class MainMobile extends HttpServlet {
         JSONArray jSONArray = MobileDAO.searchLocation(location);
         try ( PrintWriter out = response.getWriter()) {
             out.write(jSONArray.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void loginWithId(HttpServletRequest request, HttpServletResponse response) {
+        String Id = request.getParameter("Id");
+        String phoneNumber = request.getParameter("phoneNumber");
+        JSONObject jSONObject = MobileDAO.getUserById(Id, phoneNumber);
+        try ( PrintWriter out = response.getWriter()) {
+            out.write(jSONObject.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void changeUserName(HttpServletRequest request, HttpServletResponse response) {
+        String Id = request.getParameter("Id");
+        String phoneNumber = request.getParameter("phoneNumber");
+        String change_name = request.getParameter("name");
+        JSONObject jSONObject = MobileDAO.changeUserName(Id, phoneNumber, change_name);
+        try ( PrintWriter out = response.getWriter()) {
+            out.write(jSONObject.toString());
         } catch (IOException ex) {
             Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
         }

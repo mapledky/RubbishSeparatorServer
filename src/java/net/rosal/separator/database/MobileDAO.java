@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import util.EmojiAdapter;
 import util.GeoHash;
 import util.LocationBean;
+import util.SensitiveWordsUtils;
 
 /**
  *
@@ -115,6 +116,148 @@ public class MobileDAO {
         } finally {
             C3P0Util.close(connection, preparedStatement, resultSet);
             return Id;
+        }
+    }
+
+    //根据Id登录
+    public static JSONObject getUserById(String Id, String phoneNumber) {
+        Connection connection = null;
+        ResultSet resultSet = null;
+        PreparedStatement preparedStatement = null;
+        JSONObject jSONObject = new JSONObject();
+        String sql_search = "SELECT * FROM mobileinfo WHERE Id = ? AND phoneNumber = ?";
+        String sql_update = "UPDATE mobileinfo SET lastTime = ? WHERE Id = ?";
+        try {
+            connection = C3P0Util.getConnection();
+            preparedStatement = connection.prepareStatement(sql_search);
+            preparedStatement.setString(1, Id);
+            preparedStatement.setString(2, phoneNumber);
+            resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                //存在该Id
+                Id = resultSet.getString("Id");
+                phoneNumber = resultSet.getString("phoneNumber");
+                String createTime = resultSet.getString("createTime");
+                String lastTime = resultSet.getString("lastTime");
+                String username = resultSet.getString("username");
+                String dismiss = resultSet.getString("dismiss");
+                if (dismiss.equals("0")) {
+                    //该Id不存在
+                    jSONObject.put("result", "0");
+                    return jSONObject;
+                }
+                long current = System.currentTimeMillis();
+                if ((current - Long.parseLong(lastTime)) < 604800000) {
+                    //一周之内Id有效
+                    jSONObject.put("result", "1");
+                    jSONObject.put("Id", Id);
+                    jSONObject.put("phoneNumber", phoneNumber);
+                    jSONObject.put("createTime", createTime);
+                    jSONObject.put("lastTime", String.valueOf(current));
+                    jSONObject.put("username", EmojiAdapter.emojiRecovery(username));
+                    jSONObject.put("dismiss", dismiss);
+                    //更新有效时间
+                    preparedStatement.close();
+                    preparedStatement = connection.prepareStatement(sql_update);
+                    preparedStatement.setString(1, String.valueOf(current));
+                    preparedStatement.setString(2, Id);
+                    preparedStatement.executeUpdate();
+                    //更新完成
+                    return jSONObject;
+                } else {
+                    //iD已经失效
+                    jSONObject.put("result", "2");
+                    jSONObject.put("Id", Id);
+                    jSONObject.put("phoneNumber", phoneNumber);
+                    return jSONObject;
+                }
+            } else {
+                //该Id不存在
+                jSONObject.put("result", "0");
+                return jSONObject;
+            }
+        } catch (PropertyVetoException | SQLException ex) {
+            Logger.getLogger(MobileDAO.class.getName()).log(Level.SEVERE, null, ex);
+            jSONObject.put("result", "0");
+            return jSONObject;
+        } finally {
+            C3P0Util.close(connection, preparedStatement, resultSet);
+            return jSONObject;
+        }
+    }
+
+    //修改用户名信息
+    public static JSONObject changeUserName(String Id, String phoneNumber, String change_name) {
+        Connection connection = null;
+        ResultSet resultSet = null;
+        PreparedStatement preparedStatement = null;
+        JSONObject jSONObject = new JSONObject();
+        String sql_search = "SELECT * FROM mobileinfo WHERE Id = ? AND phoneNumber = ?";
+        String sql_update = "UPDATE mobileinfo SET username = ? WHERE Id = ?";
+        try {
+            connection = C3P0Util.getConnection();
+            preparedStatement = connection.prepareStatement(sql_search);
+            preparedStatement.setString(1, Id);
+            preparedStatement.setString(2, phoneNumber);
+            resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                //存在该Id
+                Id = resultSet.getString("Id");
+                phoneNumber = resultSet.getString("phoneNumber");
+                String createTime = resultSet.getString("createTime");
+                String lastTime = resultSet.getString("lastTime");
+                String username = resultSet.getString("username");
+                String dismiss = resultSet.getString("dismiss");
+                if (dismiss.equals("0")) {
+                    //该Id不存在
+                    jSONObject.put("result", "0");
+                    return jSONObject;
+                }
+                long current = System.currentTimeMillis();
+                if ((current - Long.parseLong(lastTime)) < 604800000) {
+                    //一周之内Id有效
+                    //查看是否含有敏感词汇
+                    if (SensitiveWordsUtils.contains(username)) {
+                        //包含敏感词汇
+                        //iD已经失效
+                        jSONObject.put("result", "3");
+                        jSONObject.put("Id", Id);
+                        jSONObject.put("phoneNumber", phoneNumber);
+                        return jSONObject;
+                    }
+                    preparedStatement.close();
+                    preparedStatement = connection.prepareStatement(sql_update);
+                    preparedStatement.setString(1, EmojiAdapter.emojiConvert(change_name));
+                    preparedStatement.setString(2, Id);
+                    preparedStatement.executeUpdate();
+                    //更新完成
+                    jSONObject.put("result", "1");
+                    jSONObject.put("Id", Id);
+                    jSONObject.put("phoneNumber", phoneNumber);
+                    jSONObject.put("createTime", createTime);
+                    jSONObject.put("lastTime", String.valueOf(current));
+                    jSONObject.put("username", change_name);
+                    jSONObject.put("dismiss", dismiss);
+                    return jSONObject;
+                } else {
+                    //iD已经失效
+                    jSONObject.put("result", "2");
+                    jSONObject.put("Id", Id);
+                    jSONObject.put("phoneNumber", phoneNumber);
+                    return jSONObject;
+                }
+            } else {
+                //该Id不存在
+                jSONObject.put("result", "0");
+                return jSONObject;
+            }
+        } catch (PropertyVetoException | SQLException ex) {
+            Logger.getLogger(MobileDAO.class.getName()).log(Level.SEVERE, null, ex);
+            jSONObject.put("result", "0");
+            return jSONObject;
+        } finally {
+            C3P0Util.close(connection, preparedStatement, resultSet);
+            return jSONObject;
         }
     }
 }
