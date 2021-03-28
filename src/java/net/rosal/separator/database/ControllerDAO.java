@@ -5,6 +5,7 @@
  */
 package net.rosal.separator.database;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
@@ -91,5 +92,38 @@ public class ControllerDAO {
             C3P0Util.close(connection, preparedStatement, resultSet);
         }
         return name;
+    }
+
+    //获取所有垃圾桶的信息
+    public static JSONArray getAllCanData() {
+        JSONArray jSONArray = new JSONArray();
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+
+        String sql_search = "SELECT * FROM caninfo WHERE dismiss !=0";
+        try {
+            connection = C3P0Util.getConnection();
+            preparedStatement = connection.prepareStatement(sql_search);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                String Id = resultSet.getString("Id");
+                String longitude = resultSet.getString("longitude");
+                String latitude = resultSet.getString("latitude");
+                String name = resultSet.getString("name");
+                JSONObject jSONObject = new JSONObject();
+                jSONObject.put("Id", Id);
+                jSONObject.put("longitude", longitude);
+                jSONObject.put("latitude", latitude);
+                jSONObject.put("name", name);
+                jSONArray.add(jSONObject);
+            }
+            return jSONArray;
+        } catch (PropertyVetoException | SQLException ex) {
+            Logger.getLogger(ControllerDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            C3P0Util.close(connection, preparedStatement, resultSet);
+        }
+        return jSONArray;
     }
 }

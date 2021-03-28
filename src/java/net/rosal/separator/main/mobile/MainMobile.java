@@ -9,6 +9,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,6 +18,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.rosal.separator.database.MobileDAO;
+import net.rosal.separator.database.RedisUtil;
 import net.rosal.separator.main.cancontrol.MainControl;
 import util.GeoHash;
 
@@ -96,6 +98,26 @@ public class MainMobile extends HttpServlet {
                 //修改用户名
                 changeUserName(request, response);
                 break;
+            case "004":
+                //获取垃圾桶的具体信息
+                getCanData(request, response);
+                break;
+            case "005":
+                //发布用户订单
+                publishUserOrder(request, response);
+                break;
+            case "006":
+                //更改用户头像
+                changeUserHead(request, response);
+                break;
+            case "007":
+                //根据范围匹配搜索
+                searchOrderByArea(request, response);
+                break;
+            case "008":
+                //根据用户id获取用户信息
+                getUserInfoById(request, response);
+                break;
             default:
                 break;
         }
@@ -105,10 +127,13 @@ public class MainMobile extends HttpServlet {
         String longitude = request.getParameter("longitude");
         String latitude = request.getParameter("latitude");
 
-        GeoHash geoHash = new GeoHash(Double.parseDouble(latitude), Double.parseDouble(longitude));
-        List<String> location = geoHash.getGeoHashBase32For9();
-        //在数据库中查找和location相匹配的数据
-        JSONArray jSONArray = MobileDAO.searchLocation(location);
+        JSONArray jSONArray = new JSONArray();
+        if (longitude != null && latitude != null) {
+            GeoHash geoHash = new GeoHash(Double.parseDouble(latitude), Double.parseDouble(longitude), 6);
+            List<String> location = geoHash.getGeoHashBase32For9();
+            //在数据库中查找和location相匹配的数据
+            jSONArray = MobileDAO.searchLocation(location);
+        }
         try ( PrintWriter out = response.getWriter()) {
             out.write(jSONArray.toString());
         } catch (IOException ex) {
@@ -119,7 +144,11 @@ public class MainMobile extends HttpServlet {
     private void loginWithId(HttpServletRequest request, HttpServletResponse response) {
         String Id = request.getParameter("Id");
         String phoneNumber = request.getParameter("phoneNumber");
-        JSONObject jSONObject = MobileDAO.getUserById(Id, phoneNumber);
+        JSONObject jSONObject = new JSONObject();
+
+        if (Id != null && phoneNumber != null) {
+            jSONObject = MobileDAO.getUserById(Id, phoneNumber);
+        }
         try ( PrintWriter out = response.getWriter()) {
             out.write(jSONObject.toString());
         } catch (IOException ex) {
@@ -131,7 +160,123 @@ public class MainMobile extends HttpServlet {
         String Id = request.getParameter("Id");
         String phoneNumber = request.getParameter("phoneNumber");
         String change_name = request.getParameter("name");
-        JSONObject jSONObject = MobileDAO.changeUserName(Id, phoneNumber, change_name);
+        JSONObject jSONObject = new JSONObject();
+
+        if (Id != null && phoneNumber != null & change_name != null) {
+            jSONObject = MobileDAO.changeUserName(Id, phoneNumber, change_name);
+        }
+        try ( PrintWriter out = response.getWriter()) {
+            out.write(jSONObject.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void getCanData(HttpServletRequest request, HttpServletResponse response) {
+        String Id_string = request.getParameter("can_id");
+        JSONArray jSONArray_alldata = new JSONArray();
+        if (Id_string != null) {
+            String[] can_id_array = Id_string.split("/");//本次要获取的垃圾桶的id数组
+            //在redis缓存中获取垃圾桶的相关信息
+            for (int i = 0; i < can_id_array.length; i++) {
+                if (RedisUtil.exist("can_data" + can_id_array[i])) {
+                    JSONArray jSONArray = new JSONArray();//四个垃圾桶数据json格式
+                    List<String> can_data = RedisUtil.getList("can_data" + can_id_array[i]);
+                    Iterator iterator = can_data.iterator();
+                    while (iterator.hasNext()) {
+                        String data = (String) iterator.next();
+                        String[] data_array = data.split("&");
+                        JSONObject jSONObject = new JSONObject();
+                        jSONObject.put("temp", data_array[0]);
+                        jSONObject.put("water", data_array[1]);
+                        jSONObject.put("fire", data_array[2]);
+                        jSONObject.put("weight", data_array[3]);
+                        jSONObject.put("state", data_array[4]);
+                        jSONObject.put("openstate", data_array[5]);
+                        jSONArray.add(jSONObject);
+                    }
+                    jSONArray_alldata.add(jSONArray);
+                }
+            }
+        }
+        try ( PrintWriter out = response.getWriter()) {
+            out.write(jSONArray_alldata.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    //根据id获取用户信息
+
+    private void getUserInfoById(HttpServletRequest request, HttpServletResponse response) {
+        String user_id = request.getParameter("user_id");
+
+        JSONObject jSONObject = new JSONObject();
+
+        if (user_id != null) {
+            jSONObject = MobileDAO.getUserinfoById(user_id);
+        }
+        
+        try ( PrintWriter out = response.getWriter()) {
+            out.write(jSONObject.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    //根据范围匹配
+    public void searchOrderByArea(HttpServletRequest request, HttpServletResponse response) {
+        String latitude = request.getParameter("latitude");
+        String longitude = request.getParameter("longtitude");
+        String acuracy = request.getParameter("acuracy");
+        //4:30km 5 2.4km 6 610
+        JSONArray jSONArray = new JSONArray();
+        if (longitude != null && latitude != null && acuracy != null) {
+            GeoHash geoHash = new GeoHash(Double.parseDouble(latitude), Double.parseDouble(longitude), Integer.parseInt(acuracy));
+            List<String> location = geoHash.getGeoHashBase32For9();
+            //在数据库中查找和location相匹配的数据
+            jSONArray = MobileDAO.getOrderByArea(location, Integer.parseInt(acuracy));
+        }
+        try ( PrintWriter out = response.getWriter()) {
+            out.write(jSONArray.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    //发布用户订单
+    public void publishUserOrder(HttpServletRequest request, HttpServletResponse response) {
+        String user_id = request.getParameter("user_id");
+        String title = request.getParameter("title");
+        String description = request.getParameter("description");
+        String images = request.getParameter("images");
+        String latitude = request.getParameter("latitude");
+        String longitude = request.getParameter("longitude");
+        String price = request.getParameter("price");
+        String phoneNumber = request.getParameter("phoneNumber");
+
+        JSONObject jSONObject = new JSONObject();
+        if (user_id != null && title != null && description != null && images != null && latitude != null && longitude != null && price != null) {
+            jSONObject = MobileDAO.userGiveOrder(user_id, title, description, images, latitude, longitude, price, phoneNumber);
+        }
+        try ( PrintWriter out = response.getWriter()) {
+            out.write(jSONObject.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    //更改用户头像
+    public void changeUserHead(HttpServletRequest request, HttpServletResponse response) {
+        String user_id = request.getParameter("Id");
+        String phoneNumber = request.getParameter("phoneNumber");
+        String headstate = request.getParameter("headstate");
+
+        JSONObject jSONObject = new JSONObject();
+
+        if (user_id != null && headstate != null && phoneNumber != null) {
+            jSONObject = MobileDAO.changeHead(user_id, headstate, phoneNumber);
+        }
+
         try ( PrintWriter out = response.getWriter()) {
             out.write(jSONObject.toString());
         } catch (IOException ex) {

@@ -134,7 +134,7 @@ public class SMS extends HttpServlet {
                 data.put("smsCode", String.valueOf(code));
                 data.put("time", String.valueOf(timestamp));
                 RedisUtil.delete("sms_request" + phoneNumber);
-                RedisUtil.setMap("sms_request" + phoneNumber, data, 300000);//设置过期时间5分钟
+                RedisUtil.setMap("sms_request" + phoneNumber, data, 300);//设置过期时间5分钟
                 jSONObject.put("result", "1");
                 jSONObject.put("sms_id", timestamp);
             } else {

@@ -5,9 +5,12 @@
  */
 package net.rosal.separator.main.cancontrol;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
@@ -15,6 +18,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.rosal.separator.database.ControllerDAO;
+import net.rosal.separator.database.MobileDAO;
+import net.rosal.separator.database.RedisUtil;
 
 /**
  *
@@ -85,6 +90,12 @@ public class MainControl extends HttpServlet {
                 loginCanId(request, response);
                 break;
             case "002":
+                //获取所有垃圾桶信息的接口
+                getAllCanData(request, response);
+                break;
+            case "003":
+                //增加用户积分
+                addUserScore(request, response);
                 break;
             default:
                 break;
@@ -95,8 +106,47 @@ public class MainControl extends HttpServlet {
         String Id = request.getParameter("Id");
         String password = request.getParameter("password");
 
-        //对照id
-        JSONObject jSONObject = ControllerDAO.loginCan(Id, password);
+        JSONObject jSONObject = new JSONObject();
+        if (Id != null && password != null) {
+            //对照id
+            jSONObject = ControllerDAO.loginCan(Id, password);
+        }
+        try ( PrintWriter out = response.getWriter()) {
+            out.write(jSONObject.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void getAllCanData(HttpServletRequest request, HttpServletResponse response) {
+        JSONArray jSONArray = ControllerDAO.getAllCanData();
+        try ( PrintWriter out = response.getWriter()) {
+            out.write(jSONArray.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void addUserScore(HttpServletRequest request, HttpServletResponse response) {
+        JSONObject jSONObject = new JSONObject();
+        String user_id = request.getParameter("user_id");
+        if (user_id != null) {
+            //在缓存中查看用户是否重复提交
+            if (!RedisUtil.exist("user_scan" + user_id)) {
+                //数据库添加
+                if (MobileDAO.addUserScore(user_id)) {
+                    jSONObject.put("result", "1");
+                    //存入缓存
+                    Map<String, String> cache = new HashMap<>();
+                    cache.put("time", String.valueOf(System.currentTimeMillis()));
+                    RedisUtil.setMap("user_scan" + user_id, cache, 3600);//1个小时后过期
+                } else {
+                    jSONObject.put("result", "0");
+                }
+            } else {
+                jSONObject.put("result", "0");
+            }
+        }
         try ( PrintWriter out = response.getWriter()) {
             out.write(jSONObject.toString());
         } catch (IOException ex) {

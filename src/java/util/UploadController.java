@@ -1,31 +1,35 @@
 package util;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
- 
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
- 
+
 @Controller
 @RequestMapping("/upload")
 public class UploadController {
+
     @RequestMapping("/uploadfile")
     public ModelAndView uploadImage(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        MultipartHttpServletRequest req =(MultipartHttpServletRequest)request;
-        MultipartFile multipartFile =  req.getFile("file");
-     
+        MultipartHttpServletRequest req = (MultipartHttpServletRequest) request;
+        MultipartFile multipartFile = req.getFile("file");
+
         String name = request.getParameter("filename");
-        String realPath = "Z:/data/separator";
+    String Id = request.getParameter("Id");
+        System.out.println("上传图片"+name+" "+Id);
+        String realPath = "Z:/data/separator/user" + Id + "/";
         try {
             File dir = new File(realPath);
             if (!dir.exists()) {
                 dir.mkdir();
             }
-            File file  =  new File(realPath,name);
+            File file = new File(realPath, name);
             multipartFile.transferTo(file);
         } catch (IOException e) {
             e.printStackTrace();
@@ -34,5 +38,5 @@ public class UploadController {
         }
         return null;
     }
- 
+
 }

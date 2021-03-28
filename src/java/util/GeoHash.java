@@ -30,7 +30,8 @@ public class GeoHash {
 				'8', '9', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 
 				'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
 	
-	public GeoHash(double lat, double lng) {
+	public GeoHash(double lat, double lng,int acu) {
+                sethashLength(acu);
 		location = new LocationBean(lat, lng);
 		setMinLatLng();
 	}

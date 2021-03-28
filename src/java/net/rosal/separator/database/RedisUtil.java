@@ -72,7 +72,6 @@ public class RedisUtil extends HttpServlet {
         try {
             if (jedisPool != null) {
                 jedis = jedisPool.getResource();
-                // jedis.auth(redisCacheConfig.getAuth());
             }
         } catch (Exception e) {
         }
