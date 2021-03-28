@@ -259,6 +259,57 @@ public class MobileDAO {
         }
     }
 
+    //根据电话获取用户信息
+    public static JSONObject getUserInfoByPhone(String phoneNumber) {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        JSONObject jSONObject = new JSONObject();
+        String sql_search = "SELECT * FROM mobileinfo WHERE phoneNumber = ? AND dismiss != 0";
+        try {
+            connection = C3P0Util.getConnection();
+            preparedStatement = connection.prepareStatement(sql_search);
+            preparedStatement.setString(1, phoneNumber);
+            resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                //存在该Id
+                String Id = resultSet.getString("Id");
+                String createTime = resultSet.getString("createTime");
+                String lastTime = resultSet.getString("lastTime");
+                String username = EmojiAdapter.emojiRecovery(resultSet.getString("username"));
+                String headstate = resultSet.getString("headstate");
+                String score = resultSet.getString("score");
+                String dismiss = resultSet.getString("dismiss");
+                if (dismiss.equals("0")) {
+                    //该Id不存在
+                    jSONObject.put("result", "0");
+                    return jSONObject;
+                }
+                jSONObject.put("result", "1");
+                jSONObject.put("Id", Id);
+                jSONObject.put("phoneNumber", phoneNumber);
+                jSONObject.put("createTime", createTime);
+                jSONObject.put("lastTime", String.valueOf(lastTime));
+                jSONObject.put("username", username);
+                jSONObject.put("headstate", headstate);
+                jSONObject.put("score", score);
+                jSONObject.put("dismiss", dismiss);
+                return jSONObject;
+            } else {
+                //该Id不存在
+                jSONObject.put("result", "0");
+                return jSONObject;
+            }
+        } catch (PropertyVetoException | SQLException ex) {
+            Logger.getLogger(MobileDAO.class.getName()).log(Level.SEVERE, null, ex);
+            jSONObject.put("result", "0");
+            return jSONObject;
+        } finally {
+            C3P0Util.close(connection, preparedStatement, resultSet);
+            return jSONObject;
+        }
+    }
+
     //根据id获取用户信息
     public static JSONObject getUserinfoById(String user_id) {
         Connection connection = null;

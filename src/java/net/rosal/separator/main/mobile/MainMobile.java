@@ -118,6 +118,9 @@ public class MainMobile extends HttpServlet {
                 //根据用户id获取用户信息
                 getUserInfoById(request, response);
                 break;
+            case "009":
+                //根据用户phoneNumber获取用户信息
+                getUserInfoByPhone(request, response);
             default:
                 break;
         }
@@ -215,7 +218,24 @@ public class MainMobile extends HttpServlet {
         if (user_id != null) {
             jSONObject = MobileDAO.getUserinfoById(user_id);
         }
-        
+
+        try ( PrintWriter out = response.getWriter()) {
+            out.write(jSONObject.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    //根据phone获取用户信息
+    private void getUserInfoByPhone(HttpServletRequest request, HttpServletResponse response) {
+        String phoneNumber = request.getParameter("phoneNumber");
+
+        JSONObject jSONObject = new JSONObject();
+
+        if (phoneNumber != null) {
+            jSONObject = MobileDAO.getUserInfoByPhone(phoneNumber);
+        }
+
         try ( PrintWriter out = response.getWriter()) {
             out.write(jSONObject.toString());
         } catch (IOException ex) {
