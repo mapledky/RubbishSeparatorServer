@@ -21,6 +21,7 @@ import net.rosal.separator.database.MobileDAO;
 import net.rosal.separator.database.RedisUtil;
 import net.rosal.separator.main.cancontrol.MainControl;
 import util.GeoHash;
+import util.UserState;
 
 /**
  *
@@ -121,6 +122,21 @@ public class MainMobile extends HttpServlet {
             case "009":
                 //根据用户phoneNumber获取用户信息
                 getUserInfoByPhone(request, response);
+                break;
+            case "010":
+                //获取腾讯云api id
+                getTencentApi(request, response);
+                break;
+            case "011":
+                //获取个人订单
+                getPersonOrder(request, response);
+                break;
+            case "012":
+                //更改订单状态
+                changeOrderState(request, response);
+                break;
+            case "013":
+                break;
             default:
                 break;
         }
@@ -151,6 +167,35 @@ public class MainMobile extends HttpServlet {
 
         if (Id != null && phoneNumber != null) {
             jSONObject = MobileDAO.getUserById(Id, phoneNumber);
+        }
+        try ( PrintWriter out = response.getWriter()) {
+            out.write(jSONObject.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void getPersonOrder(HttpServletRequest request, HttpServletResponse response) {
+        String user_id = request.getParameter("Id");
+        JSONArray jSONArray = new JSONArray();
+
+        if (user_id != null) {
+            jSONArray = MobileDAO.getAllOrder(user_id);
+        }
+        try ( PrintWriter out = response.getWriter()) {
+            out.write(jSONArray.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    //更改订单状态
+    private void changeOrderState(HttpServletRequest request, HttpServletResponse response) {
+        String user_id = request.getParameter("Id");
+        String order_id = request.getParameter("order_id");
+        JSONObject jSONObject = new JSONObject();
+        if (user_id != null && order_id != null) {
+            jSONObject = MobileDAO.changeOrderState(user_id, order_id);
         }
         try ( PrintWriter out = response.getWriter()) {
             out.write(jSONObject.toString());
@@ -241,6 +286,21 @@ public class MainMobile extends HttpServlet {
         } catch (IOException ex) {
             Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    //获取腾讯云api id
+    public void getTencentApi(HttpServletRequest request, HttpServletResponse response) {
+        JSONObject jSONObject = new JSONObject();
+
+        jSONObject.put("app_id", UserState.tecent_appid);
+        jSONObject.put("secret_key", UserState.tecent_secret_key);
+        jSONObject.put("secret_pass", UserState.tecent_secret_pass);
+        try ( PrintWriter out = response.getWriter()) {
+            out.write(jSONObject.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 
     //根据范围匹配

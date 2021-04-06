@@ -21,8 +21,7 @@ public class UploadController {
         MultipartFile multipartFile = req.getFile("file");
 
         String name = request.getParameter("filename");
-    String Id = request.getParameter("Id");
-        System.out.println("上传图片"+name+" "+Id);
+        String Id = request.getParameter("Id");
         String realPath = "Z:/data/separator/user" + Id + "/";
         try {
             File dir = new File(realPath);

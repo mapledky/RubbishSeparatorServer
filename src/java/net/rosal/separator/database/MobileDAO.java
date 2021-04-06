@@ -122,6 +122,74 @@ public class MobileDAO {
         return jSONArray;
     }
 
+    //获取用户的所有订单
+    public static JSONArray getAllOrder(String user_id) {
+        JSONArray jSONArray = new JSONArray();
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        String sql = "SELECT * FROM userorder WHERE user_id = ?";
+        try {
+            connection = C3P0Util.getConnection();
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, user_id);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                String Id = resultSet.getString("Id");
+                String title = EmojiAdapter.emojiRecovery(resultSet.getString("title"));
+                String description = EmojiAdapter.emojiRecovery(resultSet.getString("description"));
+                String latitude = resultSet.getString("latitude");
+                String longitude = resultSet.getString("longitude");
+                String price = resultSet.getString("price");
+                String time = resultSet.getString("time");
+                String phoneNumber = resultSet.getString("phoneNumber");
+                String dismiss = resultSet.getString("dismiss");
+
+                JSONObject jSONObject = new JSONObject();
+                jSONObject.put("Id", Id);
+                jSONObject.put("user_id", user_id);
+                jSONObject.put("title", title);
+                jSONObject.put("description", description);
+                jSONObject.put("latitude", latitude);
+                jSONObject.put("longitude", longitude);
+                jSONObject.put("price", price);
+                jSONObject.put("time", time);
+                jSONObject.put("phoneNumber", phoneNumber);
+                jSONObject.put("dismiss", dismiss);
+                jSONArray.add(jSONObject);
+            }
+        } catch (PropertyVetoException | SQLException ex) {
+            Logger.getLogger(ControllerDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            C3P0Util.close(connection, preparedStatement, resultSet);
+        }
+        return jSONArray;
+    }
+
+    //修改用户订单状态
+    public static JSONObject changeOrderState(String user_id, String order_id) {
+        JSONObject jSONObject = new JSONObject();
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        String sql = "UPDATE userorder SET dismiss = ? WHERE user_id = ? AND Id = ?";
+        try {
+            connection = C3P0Util.getConnection();
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, "0");
+            preparedStatement.setString(2, user_id);
+            preparedStatement.setString(3, order_id);
+            preparedStatement.executeUpdate();
+            jSONObject.put("result", "1");
+        } catch (PropertyVetoException | SQLException ex) {
+            Logger.getLogger(ControllerDAO.class.getName()).log(Level.SEVERE, null, ex);
+            jSONObject.put("result", "0");
+        } finally {
+            C3P0Util.close(connection, preparedStatement, resultSet);
+        }
+        return jSONObject;
+    }
+
     //获取id
     public static String getId(String phoneNumber) {
         Connection connection = null;
