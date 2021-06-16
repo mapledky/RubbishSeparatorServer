@@ -70,6 +70,51 @@ public class MobileDAO {
         return jSONArray;
     }
 
+    //根据id
+    public static JSONObject getOrderById(String Id) {
+        JSONObject jSONObject = new JSONObject();
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        String sql = "SELECT * FROM userorder WHERE Id = ?";
+        try {
+            connection = C3P0Util.getConnection();
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, Id);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                String user_id = resultSet.getString("user_id");
+                String title = EmojiAdapter.emojiRecovery(resultSet.getString("title"));
+                String description = EmojiAdapter.emojiRecovery(resultSet.getString("description"));
+                String latitude = resultSet.getString("latitude");
+                String longitude = resultSet.getString("longitude");
+                String price = resultSet.getString("price");
+                String time = resultSet.getString("time");
+                String images = resultSet.getString("images");
+                String phoneNumber = resultSet.getString("phoneNumber");
+                String dismiss = resultSet.getString("dismiss");
+
+                jSONObject.put("Id", Id);
+                jSONObject.put("user_id", user_id);
+                jSONObject.put("title", title);
+                jSONObject.put("description", description);
+                jSONObject.put("latitude", latitude);
+                jSONObject.put("longitude", longitude);
+                jSONObject.put("images", images);
+                jSONObject.put("price", price);
+                jSONObject.put("time", time);
+                jSONObject.put("phoneNumber", phoneNumber);
+                jSONObject.put("dismiss", dismiss);
+
+            }
+        } catch (PropertyVetoException | SQLException ex) {
+            Logger.getLogger(ControllerDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            C3P0Util.close(connection, preparedStatement, resultSet);
+        }
+        return jSONObject;
+    }
+
     //根据地理位置匹配搜索订单
     public static JSONArray getOrderByArea(List<String> location, int acuracy) {
         JSONArray jSONArray = new JSONArray();
@@ -90,6 +135,7 @@ public class MobileDAO {
                 String longitude = resultSet.getString("longitude");
                 String price = resultSet.getString("price");
                 String time = resultSet.getString("time");
+                String images = resultSet.getString("images");
                 String phoneNumber = resultSet.getString("phoneNumber");
                 String dismiss = resultSet.getString("dismiss");
 
@@ -105,17 +151,20 @@ public class MobileDAO {
                         jSONObject.put("description", description);
                         jSONObject.put("latitude", latitude);
                         jSONObject.put("longitude", longitude);
+                        jSONObject.put("images", images);
                         jSONObject.put("price", price);
                         jSONObject.put("time", time);
                         jSONObject.put("phoneNumber", phoneNumber);
                         jSONObject.put("dismiss", dismiss);
                         jSONArray.add(jSONObject);
                         break;
+
                     }
                 }
             }
         } catch (PropertyVetoException | SQLException ex) {
-            Logger.getLogger(ControllerDAO.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ControllerDAO.class
+                    .getName()).log(Level.SEVERE, null, ex);
         } finally {
             C3P0Util.close(connection, preparedStatement, resultSet);
         }
@@ -142,6 +191,7 @@ public class MobileDAO {
                 String longitude = resultSet.getString("longitude");
                 String price = resultSet.getString("price");
                 String time = resultSet.getString("time");
+                String images = resultSet.getString("images");
                 String phoneNumber = resultSet.getString("phoneNumber");
                 String dismiss = resultSet.getString("dismiss");
 
@@ -154,12 +204,15 @@ public class MobileDAO {
                 jSONObject.put("longitude", longitude);
                 jSONObject.put("price", price);
                 jSONObject.put("time", time);
+                jSONObject.put("images", images);
                 jSONObject.put("phoneNumber", phoneNumber);
                 jSONObject.put("dismiss", dismiss);
                 jSONArray.add(jSONObject);
+
             }
         } catch (PropertyVetoException | SQLException ex) {
-            Logger.getLogger(ControllerDAO.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ControllerDAO.class
+                    .getName()).log(Level.SEVERE, null, ex);
         } finally {
             C3P0Util.close(connection, preparedStatement, resultSet);
         }
@@ -181,9 +234,12 @@ public class MobileDAO {
             preparedStatement.setString(3, order_id);
             preparedStatement.executeUpdate();
             jSONObject.put("result", "1");
+
         } catch (PropertyVetoException | SQLException ex) {
-            Logger.getLogger(ControllerDAO.class.getName()).log(Level.SEVERE, null, ex);
-            jSONObject.put("result", "0");
+            Logger.getLogger(ControllerDAO.class
+                    .getName()).log(Level.SEVERE, null, ex);
+            jSONObject.put(
+                    "result", "0");
         } finally {
             C3P0Util.close(connection, preparedStatement, resultSet);
         }
@@ -245,10 +301,12 @@ public class MobileDAO {
                     file.mkdir();
                 }
                 return Id;
+
             }
 
         } catch (PropertyVetoException | SQLException ex) {
-            Logger.getLogger(MobileDAO.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(MobileDAO.class
+                    .getName()).log(Level.SEVERE, null, ex);
             return Id;
         } finally {
             C3P0Util.close(connection, preparedStatement, resultSet);
@@ -316,10 +374,13 @@ public class MobileDAO {
                 //该Id不存在
                 jSONObject.put("result", "0");
                 return jSONObject;
+
             }
         } catch (PropertyVetoException | SQLException ex) {
-            Logger.getLogger(MobileDAO.class.getName()).log(Level.SEVERE, null, ex);
-            jSONObject.put("result", "0");
+            Logger.getLogger(MobileDAO.class
+                    .getName()).log(Level.SEVERE, null, ex);
+            jSONObject.put(
+                    "result", "0");
             return jSONObject;
         } finally {
             C3P0Util.close(connection, preparedStatement, resultSet);
@@ -367,10 +428,13 @@ public class MobileDAO {
                 //该Id不存在
                 jSONObject.put("result", "0");
                 return jSONObject;
+
             }
         } catch (PropertyVetoException | SQLException ex) {
-            Logger.getLogger(MobileDAO.class.getName()).log(Level.SEVERE, null, ex);
-            jSONObject.put("result", "0");
+            Logger.getLogger(MobileDAO.class
+                    .getName()).log(Level.SEVERE, null, ex);
+            jSONObject.put(
+                    "result", "0");
             return jSONObject;
         } finally {
             C3P0Util.close(connection, preparedStatement, resultSet);
@@ -420,10 +484,13 @@ public class MobileDAO {
                 //该Id不存在
                 jSONObject.put("result", "0");
                 return jSONObject;
+
             }
         } catch (PropertyVetoException | SQLException ex) {
-            Logger.getLogger(MobileDAO.class.getName()).log(Level.SEVERE, null, ex);
-            jSONObject.put("result", "0");
+            Logger.getLogger(MobileDAO.class
+                    .getName()).log(Level.SEVERE, null, ex);
+            jSONObject.put(
+                    "result", "0");
             return jSONObject;
         } finally {
             C3P0Util.close(connection, preparedStatement, resultSet);
@@ -488,10 +555,13 @@ public class MobileDAO {
                 //该Id不存在
                 jSONObject.put("result", "0");
                 return jSONObject;
+
             }
         } catch (PropertyVetoException | SQLException ex) {
-            Logger.getLogger(MobileDAO.class.getName()).log(Level.SEVERE, null, ex);
-            jSONObject.put("result", "0");
+            Logger.getLogger(MobileDAO.class
+                    .getName()).log(Level.SEVERE, null, ex);
+            jSONObject.put(
+                    "result", "0");
             return jSONObject;
         } finally {
             C3P0Util.close(connection, preparedStatement, resultSet);
@@ -565,10 +635,13 @@ public class MobileDAO {
                 //该Id不存在
                 jSONObject.put("result", "0");
                 return jSONObject;
+
             }
         } catch (PropertyVetoException | SQLException ex) {
-            Logger.getLogger(MobileDAO.class.getName()).log(Level.SEVERE, null, ex);
-            jSONObject.put("result", "0");
+            Logger.getLogger(MobileDAO.class
+                    .getName()).log(Level.SEVERE, null, ex);
+            jSONObject.put(
+                    "result", "0");
             return jSONObject;
         } finally {
             C3P0Util.close(connection, preparedStatement, resultSet);
@@ -603,7 +676,7 @@ public class MobileDAO {
             preparedStatement.setString(6, longitude);
             preparedStatement.setString(7, price);
             preparedStatement.setString(8, String.valueOf(time));
-            preparedStatement.setString(9, user_id);
+            preparedStatement.setString(9, phoneNumber);
             preparedStatement.executeUpdate();
             preparedStatement.close();
             preparedStatement = connection.prepareStatement(sql_search);
@@ -614,9 +687,12 @@ public class MobileDAO {
             jSONObject.put("Id", Id);
             jSONObject.put("result", "1");
             return jSONObject;
+
         } catch (PropertyVetoException | SQLException ex) {
-            Logger.getLogger(MobileDAO.class.getName()).log(Level.SEVERE, null, ex);
-            jSONObject.put("result", "0");
+            Logger.getLogger(MobileDAO.class
+                    .getName()).log(Level.SEVERE, null, ex);
+            jSONObject.put(
+                    "result", "0");
             return jSONObject;
         } finally {
             C3P0Util.close(connection, preparedStatement, resultSet);
@@ -637,9 +713,12 @@ public class MobileDAO {
             int result = preparedStatement.executeUpdate();
             if (result > 0) {
                 return true;
+
             }
         } catch (PropertyVetoException | SQLException ex) {
-            Logger.getLogger(MobileDAO.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(MobileDAO.class
+                    .getName()).log(Level.SEVERE, null, ex);
+
             return false;
         } finally {
             C3P0Util.close(connection, preparedStatement, resultSet);

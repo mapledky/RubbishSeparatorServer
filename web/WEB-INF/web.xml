@@ -28,6 +28,11 @@
         <servlet-name>SMS</servlet-name>
         <servlet-class>net.rosal.separator.main.mobile.SMS</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>RedisUtil</servlet-name>
+        <servlet-class>net.rosal.separator.database.RedisUtil</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
     <servlet-mapping>
         <servlet-name>dispatcher</servlet-name>
         <url-pattern>*.htm</url-pattern>

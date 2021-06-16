@@ -41,7 +41,7 @@ public class MainMobile extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        try ( PrintWriter out = response.getWriter()) {
+        try (PrintWriter out = response.getWriter()) {
             /* TODO output your page here. You may use following sample code. */
             out.println("<!DOCTYPE html>");
             out.println("<html>");
@@ -136,6 +136,8 @@ public class MainMobile extends HttpServlet {
                 changeOrderState(request, response);
                 break;
             case "013":
+                //根据id获取订单信息
+                getOrderById(request, response);
                 break;
             default:
                 break;
@@ -153,7 +155,7 @@ public class MainMobile extends HttpServlet {
             //在数据库中查找和location相匹配的数据
             jSONArray = MobileDAO.searchLocation(location);
         }
-        try ( PrintWriter out = response.getWriter()) {
+        try (PrintWriter out = response.getWriter()) {
             out.write(jSONArray.toString());
         } catch (IOException ex) {
             Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
@@ -168,7 +170,20 @@ public class MainMobile extends HttpServlet {
         if (Id != null && phoneNumber != null) {
             jSONObject = MobileDAO.getUserById(Id, phoneNumber);
         }
-        try ( PrintWriter out = response.getWriter()) {
+        try (PrintWriter out = response.getWriter()) {
+            out.write(jSONObject.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void getOrderById(HttpServletRequest request, HttpServletResponse response) {
+        String order_id = request.getParameter("Id");
+        JSONObject jSONObject = new JSONObject();
+        if (order_id != null) {
+            jSONObject = MobileDAO.getOrderById(order_id);
+        }
+        try (PrintWriter out = response.getWriter()) {
             out.write(jSONObject.toString());
         } catch (IOException ex) {
             Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
@@ -182,7 +197,7 @@ public class MainMobile extends HttpServlet {
         if (user_id != null) {
             jSONArray = MobileDAO.getAllOrder(user_id);
         }
-        try ( PrintWriter out = response.getWriter()) {
+        try (PrintWriter out = response.getWriter()) {
             out.write(jSONArray.toString());
         } catch (IOException ex) {
             Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
@@ -197,7 +212,7 @@ public class MainMobile extends HttpServlet {
         if (user_id != null && order_id != null) {
             jSONObject = MobileDAO.changeOrderState(user_id, order_id);
         }
-        try ( PrintWriter out = response.getWriter()) {
+        try (PrintWriter out = response.getWriter()) {
             out.write(jSONObject.toString());
         } catch (IOException ex) {
             Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
@@ -213,7 +228,7 @@ public class MainMobile extends HttpServlet {
         if (Id != null && phoneNumber != null & change_name != null) {
             jSONObject = MobileDAO.changeUserName(Id, phoneNumber, change_name);
         }
-        try ( PrintWriter out = response.getWriter()) {
+        try (PrintWriter out = response.getWriter()) {
             out.write(jSONObject.toString());
         } catch (IOException ex) {
             Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
@@ -244,10 +259,13 @@ public class MainMobile extends HttpServlet {
                         jSONArray.add(jSONObject);
                     }
                     jSONArray_alldata.add(jSONArray);
+                } else {
+                    JSONArray jSONArray = new JSONArray();
+                    jSONArray_alldata.add(jSONArray);
                 }
             }
         }
-        try ( PrintWriter out = response.getWriter()) {
+        try (PrintWriter out = response.getWriter()) {
             out.write(jSONArray_alldata.toString());
         } catch (IOException ex) {
             Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
@@ -264,7 +282,7 @@ public class MainMobile extends HttpServlet {
             jSONObject = MobileDAO.getUserinfoById(user_id);
         }
 
-        try ( PrintWriter out = response.getWriter()) {
+        try (PrintWriter out = response.getWriter()) {
             out.write(jSONObject.toString());
         } catch (IOException ex) {
             Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
@@ -281,7 +299,7 @@ public class MainMobile extends HttpServlet {
             jSONObject = MobileDAO.getUserInfoByPhone(phoneNumber);
         }
 
-        try ( PrintWriter out = response.getWriter()) {
+        try (PrintWriter out = response.getWriter()) {
             out.write(jSONObject.toString());
         } catch (IOException ex) {
             Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
@@ -295,7 +313,7 @@ public class MainMobile extends HttpServlet {
         jSONObject.put("app_id", UserState.tecent_appid);
         jSONObject.put("secret_key", UserState.tecent_secret_key);
         jSONObject.put("secret_pass", UserState.tecent_secret_pass);
-        try ( PrintWriter out = response.getWriter()) {
+        try (PrintWriter out = response.getWriter()) {
             out.write(jSONObject.toString());
         } catch (IOException ex) {
             Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
@@ -316,7 +334,7 @@ public class MainMobile extends HttpServlet {
             //在数据库中查找和location相匹配的数据
             jSONArray = MobileDAO.getOrderByArea(location, Integer.parseInt(acuracy));
         }
-        try ( PrintWriter out = response.getWriter()) {
+        try (PrintWriter out = response.getWriter()) {
             out.write(jSONArray.toString());
         } catch (IOException ex) {
             Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
@@ -338,7 +356,7 @@ public class MainMobile extends HttpServlet {
         if (user_id != null && title != null && description != null && images != null && latitude != null && longitude != null && price != null) {
             jSONObject = MobileDAO.userGiveOrder(user_id, title, description, images, latitude, longitude, price, phoneNumber);
         }
-        try ( PrintWriter out = response.getWriter()) {
+        try (PrintWriter out = response.getWriter()) {
             out.write(jSONObject.toString());
         } catch (IOException ex) {
             Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);
@@ -357,7 +375,7 @@ public class MainMobile extends HttpServlet {
             jSONObject = MobileDAO.changeHead(user_id, headstate, phoneNumber);
         }
 
-        try ( PrintWriter out = response.getWriter()) {
+        try (PrintWriter out = response.getWriter()) {
             out.write(jSONObject.toString());
         } catch (IOException ex) {
             Logger.getLogger(MainControl.class.getName()).log(Level.SEVERE, null, ex);

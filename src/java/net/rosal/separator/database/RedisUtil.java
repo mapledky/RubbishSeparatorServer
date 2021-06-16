@@ -5,8 +5,13 @@
  */
 package net.rosal.separator.database;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -35,6 +40,46 @@ public class RedisUtil extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         this.config = config;
+
+        //循环输入虚拟垃圾桶数据
+        inputVirtualData();
+    }
+
+    private void inputVirtualData() {
+        //获取所有垃圾桶的信息
+        JSONArray all_can = ControllerDAO.getAllCanData();
+
+        String recycle = "25&50&1.23&5.6&0&0";//可回收垃圾数据包
+        String kitchen = "25&50&1.23&5.6&0&0";//厨余垃圾数据包
+        String other = "25&50&1.23&5.6&0&0";//其他垃圾数据包
+        String harm = "25&50&1.23&5.6&0&0";//有害垃圾数据包
+        List<String> candata = new ArrayList<String>();
+        candata.add(recycle);
+        candata.add(kitchen);
+        candata.add(other);
+        candata.add(harm);
+        //循环将数据存入缓存
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    for (int i = 1; i < all_can.size(); i++) {
+
+                        JSONObject jSONObject = all_can.getJSONObject(i);
+                        if (RedisUtil.exist("can_data" + jSONObject.getString("Id"))) {
+                            RedisUtil.delete("can_data" + jSONObject.getString("Id"));
+                        }
+                        RedisUtil.setList("can_data" + jSONObject.getString("Id"), candata, 600);
+
+                    }
+                    try {
+                        Thread.sleep(5 * 60 * 1000);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(RedisUtil.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        }).start();
     }
 
     /**
