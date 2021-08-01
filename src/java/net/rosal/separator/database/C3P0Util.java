@@ -26,10 +26,10 @@ public class C3P0Util extends HttpServlet {
     ServletConfig config;//定义一个ServletConfig对象
     private static ComboPooledDataSource cpds = new ComboPooledDataSource();
 
-    private static String user = "maple_express";
+    private static String user = "maple";
     private static String password = "200105DuKeyu";
 
-    private static String expressDatabase = "jdbc:mysql://rm-bp1yi5q5e7340j776125010.mysql.rds.aliyuncs.com:3306/maple_separator?useUnicode=true&characterEncoding=utf8&useSSL=false";
+    private static String expressDatabase = "jdbc:mysql://rm-bp1rhj2u2554p5up0.mysql.rds.aliyuncs.com:3306/maple_separator?useUnicode=true&characterEncoding=utf8&useSSL=false";
 
     @Override
     public void init(ServletConfig config) throws ServletException {

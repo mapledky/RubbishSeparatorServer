@@ -49,6 +49,7 @@ public class RedisUtil extends HttpServlet {
         //获取所有垃圾桶的信息
         JSONArray all_can = ControllerDAO.getAllCanData();
 
+        
         String recycle = "25&50&1.23&5.6&0&0";//可回收垃圾数据包
         String kitchen = "25&50&1.23&5.6&0&0";//厨余垃圾数据包
         String other = "25&50&1.23&5.6&0&0";//其他垃圾数据包
@@ -63,7 +64,7 @@ public class RedisUtil extends HttpServlet {
             @Override
             public void run() {
                 while (true) {
-                    for (int i = 1; i < all_can.size(); i++) {
+                    for (int i =0 ; i < all_can.size(); i++) {
 
                         JSONObject jSONObject = all_can.getJSONObject(i);
                         if (RedisUtil.exist("can_data" + jSONObject.getString("Id"))) {
@@ -75,6 +76,7 @@ public class RedisUtil extends HttpServlet {
                     try {
                         Thread.sleep(5 * 60 * 1000);
                     } catch (InterruptedException ex) {
+                        System.out.println(ex.toString());
                         Logger.getLogger(RedisUtil.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
