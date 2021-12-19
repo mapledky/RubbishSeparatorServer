@@ -22,7 +22,7 @@ public class UploadController {
 
         String name = request.getParameter("filename");
         String Id = request.getParameter("Id");
-        String realPath = "Z:/data/separator/user" + Id + "/";
+        String realPath = "Z:/projectdata_1001/separator/user" + Id + "/";
         try {
             File dir = new File(realPath);
             if (!dir.exists()) {
